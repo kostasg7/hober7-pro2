@@ -8,6 +8,10 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Persistence;
 import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Join;
+import jakarta.persistence.criteria.Root;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -57,14 +61,30 @@ public class App {
         String sql = "SELECT r.title, COUNT(t) FROM Region r LEFT JOIN r.teachers t " +
                 "WHERE t.isActive = false OR t.isActive IS NULL GROUP BY r.title";
 
-        TypedQuery<Object[]> query = em.createQuery(sql, Object[].class);
-        List<Object[]> teachersPerRegion = query.getResultList();
-        for (Object[] el : teachersPerRegion) {
-            for (Object item : el) {
-                System.out.print(item + " ");
-            }
-            System.out.println();
-        }
+//        TypedQuery<Object[]> query = em.createQuery(sql, Object[].class);
+//        List<Object[]> teachersPerRegion = query.getResultList();
+//        for (Object[] el : teachersPerRegion) {
+//            for (Object item : el) {
+//                System.out.print(item + " ");
+//            }
+//            System.out.println();
+//        }
+
+        // Find όλους τους active teachers σε ένα region
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Teacher> query = cb.createQuery(Teacher.class);
+        Root<Teacher> teacher = query.from(Teacher.class);
+        Join<Teacher, Region> region = teacher.join("region");
+
+        query.select(teacher).where(
+                cb.and(
+                        cb.isTrue(teacher.get("isActive")),
+                        cb.equal(region.get("title"), "Θεσσαλονίκη")
+                )
+        );
+        List<Teacher> teachers = em.createQuery(query).getResultList();
+        teachers.forEach(System.out::println);
+
         em.getTransaction().commit();
 
 
