@@ -1,4 +1,4 @@
-use hiber6dev2db;
+USE hiber7pro2db;
 
 INSERT INTO regions (id, title) VALUES
     ('1', 'Αθήνα'),
